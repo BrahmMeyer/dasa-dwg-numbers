@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Atomic — Dasa Uranium Project — Drawing / Model Number Generator</title>
+<style>
+  :root{
+    --ink:#0d1b2a;
+    --panel:#13293d;
+    --panel-2:#0a1622;
+    --line:#2a4a63;
+    --paper:#eef2f0;
+    --amber:#e0a72e;
+    --amber-dim:#8a6a24;
+    --ok:#4caf7d;
+    --bad:#d1503f;
+    --text:#dbe6ea;
+    --muted:#84a0ad;
+    --mono: 'Courier New', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Segoe UI', Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--ink), var(--ink)),
+      repeating-linear-gradient(0deg, rgba(224,167,46,0.035) 0px, rgba(224,167,46,0.035) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, rgba(224,167,46,0.035) 0px, rgba(224,167,46,0.035) 1px, transparent 1px, transparent 40px);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:1040px;margin:0 auto;}
+
+  .masthead{
+    text-align:center;
+    padding-bottom:16px;
+    margin-bottom:6px;
+    border-bottom:2px solid var(--amber-dim);
+  }
+  .masthead .co{
+    font-size:1.5rem;
+    font-weight:700;
+    letter-spacing:0.03em;
+    color:var(--paper);
+  }
+  .masthead .proj{
+    font-family:var(--mono);
+    font-size:0.85rem;
+    color:var(--amber);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin-top:4px;
+  }
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    padding:14px 0 18px;
+    margin-bottom:20px;
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  header h1{
+    font-size:1.05rem;
+    margin:0;
+    letter-spacing:0.02em;
+    color:var(--paper);
+    font-weight:600;
+  }
+  header .tag{
+    font-family:var(--mono);
+    font-size:0.75rem;
+    color:var(--amber);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:640px){ .grid{grid-template-columns:1fr;} }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:18px 20px;
+  }
+  .panel h2{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    color:var(--amber);
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  label{
+    display:block;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    margin:12px 0 4px;
+  }
+  label:first-of-type{margin-top:0;}
+  select, input[type=text], input[type=date]{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--paper);
+    padding:9px 10px;
+    font-family:var(--sans);
+    font-size:0.9rem;
+    border-radius:2px;
+  }
+  select:focus, input:focus{
+    outline:2px solid var(--amber);
+    outline-offset:1px;
+  }
+  textarea{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--paper);
+    padding:9px 10px;
+    font-family:var(--sans);
+    font-size:0.85rem;
+    border-radius:2px;
+    resize:vertical;
+    min-height:44px;
+  }
+  .hint{font-size:0.72rem;color:var(--muted);margin-top:4px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  .stamp{
+    margin-top:20px;
+    background:var(--panel-2);
+    border:1px solid var(--amber-dim);
+    border-radius:2px;
+    padding:18px;
+    text-align:center;
+  }
+  .stamp .label{font-size:0.68rem;letter-spacing:0.16em;color:var(--muted);text-transform:uppercase;}
+  .stamp .code{
+    font-family:var(--mono);
+    font-size:1.4rem;
+    color:var(--amber);
+    letter-spacing:0.03em;
+    word-break:break-all;
+    margin:8px 0;
+  }
+  .status{
+    font-size:0.8rem;
+    font-weight:600;
+    letter-spacing:0.04em;
+    padding:6px 10px;
+    border-radius:2px;
+    display:inline-block;
+  }
+  .status.ok{color:var(--ok);border:1px solid var(--ok);}
+  .status.bad{color:var(--bad);border:1px solid var(--bad);}
+  .status.wait{color:var(--muted);border:1px solid var(--line);}
+
+  .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  button{
+    font-family:var(--sans);
+    font-size:0.8rem;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:10px 16px;
+    border-radius:2px;
+    border:1px solid var(--amber-dim);
+    background:transparent;
+    color:var(--amber);
+    cursor:pointer;
+  }
+  button:hover{background:rgba(224,167,46,0.1);}
+  button.primary{background:var(--amber);color:var(--ink);border-color:var(--amber);}
+  button.primary:hover{background:#f0b640;}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+  button.small{padding:5px 9px;font-size:0.68rem;}
+
+  .register{margin-top:26px;}
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:0.78rem;min-width:820px;}
+  th, td{
+    text-align:left;
+    padding:8px 10px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  td.notes-cell{white-space:normal;max-width:220px;}
+  th{
+    color:var(--muted);
+    text-transform:uppercase;
+    font-size:0.66rem;
+    letter-spacing:0.08em;
+    font-weight:600;
+  }
+  td.code{font-family:var(--mono);color:var(--paper);}
+  .empty-row td{color:var(--muted);font-style:italic;padding:16px 10px;white-space:normal;}
+  .del-btn{
+    background:none;border:none;color:var(--bad);
+    cursor:pointer;font-size:0.9rem;padding:0 4px;
+  }
+  .copy-btn{
+    background:none;border:none;color:var(--amber);
+    cursor:pointer;font-size:0.9rem;padding:0 4px;
+  }
+  .file-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .file-row input[type=file]{
+    color:var(--muted);font-size:0.78rem;flex:1;min-width:180px;
+  }
+  footer{
+    margin-top:30px;
+    font-size:0.72rem;
+    color:var(--muted);
+    border-top:1px solid var(--line);
+    padding-top:14px;
+    line-height:1.6;
+  }
+  .count-pill{
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--muted);
+  }
+  .toast{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--amber);
+    color:var(--ink);
+    font-size:0.8rem;
+    font-weight:600;
+    padding:10px 18px;
+    border-radius:2px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.2s ease;
+    z-index:100;
+  }
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="co">GLOBAL ATOMIC</div>
+    <div class="proj">Dasa Uranium Project</div>
+  </div>
+
+  <header>
+    <div>
+      <h1>Drawing / Model Number Generator</h1>
+      <div class="tag">Project–Area–Discipline–Section–Sequence–Type</div>
+    </div>
+    <div class="tag" id="entryCount">0 in session</div>
+  </header>
+
+  <div class="grid">
+
+    <!-- LEFT: builder -->
+    <div class="panel">
+      <h2>Build Number</h2>
+
+      <label for="project">Project Code</label>
+      <input type="text" id="project" value="DASA" maxlength="10">
+      <div class="hint">Fixed for this project — change only if instructed.</div>
+
+      <label for="area">Area</label>
+      <select id="area"></select>
+
+      <div class="row2">
+        <div>
+          <label for="discipline">Discipline</label>
+          <select id="discipline"></select>
+        </div>
+        <div>
+          <label for="type">Type</label>
+          <select id="type">
+            <option value="GA">GA – Assembly</option>
+            <option value="DT">DT – Part / Detail</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint">Issuing as PDF: set Discipline to the discipline of the drawing being issued, not the modelling discipline.</div>
+
+      <label for="section">Section</label>
+      <input type="text" id="section" placeholder="e.g. sub-system / plant train / level">
+
+      <label for="itemCategory">Item Category <span style="opacity:.6;">(fills the tag prefix hint only)</span></label>
+      <select id="itemCategory"></select>
+
+      <label for="sequence">Sequence — Equipment / Valve / Line / Tray No.</label>
+      <input type="text" id="sequence" placeholder="e.g. P-2104, 150-PW-1024-A1A, TRAY-07">
+      <div class="hint">Always the plant's own tag. Never an invented running number.</div>
+
+      <label for="subindex">Sub-index <span style="opacity:.6;">(only if one tag has more than one GA/DT)</span></label>
+      <input type="text" id="subindex" placeholder="e.g. 01">
+
+      <div class="row2">
+        <div>
+          <label for="revDate">Date</label>
+          <input type="date" id="revDate">
+        </div>
+        <div>
+          <label for="rev">Rev</label>
+          <input type="text" id="rev" placeholder="A" maxlength="6">
+        </div>
+      </div>
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Optional — issue reason, description, etc."></textarea>
+
+      <div class="stamp">
+        <div class="label">Generated Number</div>
+        <div class="code" id="generatedCode">—</div>
+        <div id="dupStatus" class="status wait">Enter fields to generate</div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="addBtn" disabled>Add to Register</button>
+        <button id="copyRowBtn" disabled>Copy Row for Master Register</button>
+        <button id="clearBtn">Clear Fields</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: register / duplicate source -->
+    <div class="panel">
+      <h2>Duplicate Check Source</h2>
+      <p class="hint" style="margin-top:0;">No shared backend — checks against numbers added this session, plus any existing register you load below. Export before closing the tab, and load the latest export each time someone else has added numbers.</p>
+
+      <label for="csvFile">Load existing register (CSV, one column of numbers or a "Drawing No." column)</label>
+      <div class="file-row">
+        <input type="file" id="csvFile" accept=".csv">
+        <span class="count-pill" id="loadedCount">0 loaded</span>
+      </div>
+
+      <div class="actions">
+        <button id="exportBtn">Export Session as CSV</button>
+        <button id="resetBtn">Reset Session</button>
+      </div>
+
+      <p class="hint">Fixed code lists (Area / Discipline / Item Category) are set in the <code>AREAS</code> / <code>DISCIPLINES</code> / <code>ITEM_CATEGORIES</code> arrays near the top of the script — edit there if the agreed project standard changes.</p>
+    </div>
+  </div>
+
+  <div class="panel register">
+    <h2>Numbers Added This Session</h2>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Number</th><th>Date</th><th>Rev</th><th>Area</th><th>Discipline</th><th>Type</th><th>Section</th><th>Notes</th><th></th><th></th></tr>
+      </thead>
+      <tbody id="registerBody">
+        <tr class="empty-row"><td colspan="10">Nothing added yet.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <footer>
+    Two types only — GA (assembly) and DT (part/detail). Frame Generator beams are never renamed or individually numbered. Piping fittings, tray fittings, and individual cables are catalog components governed by spec — only the run, spool, or tray section that is issued or clash-checked gets a number here. Navisworks stays outside revision control — Inventor only, via Pack and Go at each issued revision.
+  </footer>
+
+</div>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+/* ---- Fixed code lists: edit these to match the agreed project standard ---- */
+
+const AREAS = [
+  ["", "Select area..."],
+  ["ROM", "ROM Pad / Primary Crushing"],
+  ["STK", "Stockpile & Reclaim"],
+  ["MIL", "Milling / Grinding"],
+  ["LEA", "Leaching"],
+  ["CCD", "CCD / Thickening"],
+  ["SXR", "Solvent Extraction"],
+  ["IEX", "Ion Exchange"],
+  ["PPT", "Precipitation & Calcining"],
+  ["TSF", "Tailings Storage"],
+  ["RGT", "Reagents"],
+  ["WTP", "Water Treatment"],
+  ["PKG", "Product Handling / Drumming"],
+  ["ELS", "Electrical Substation / MCC"],
+  ["SVC", "Site Services / HVAC"],
+  ["CIV", "Civil / General"]
+];
+
+const DISCIPLINES = [
+  ["", "Select discipline..."],
+  ["ME", "Mechanical"],
+  ["PI", "Piping"],
+  ["ST", "Structural"],
+  ["EL", "Electrical"],
+  ["IN", "Instrumentation"],
+  ["CV", "Civil"],
+  ["AR", "Architectural"],
+  ["PR", "Process"]
+];
+
+const ITEM_CATEGORIES = [
+  ["", "None / not applicable"],
+  ["P", "Pump"],
+  ["TK", "Tank"],
+  ["AG", "Agitator / Mixer"],
+  ["TH", "Thickener / Clarifier"],
+  ["CR", "Crusher"],
+  ["ML", "Mill"],
+  ["SC", "Screen"],
+  ["CV", "Conveyor"],
+  ["VE", "Vessel / Column"],
+  ["FI", "Filter"],
+  ["HE", "Heat Exchanger"],
+  ["V", "Valve (gate/ball/control/relief/check)"],
+  ["FN", "Blower / Fan"],
+  ["CP", "Compressor"],
+  ["CY", "Cyclone"],
+  ["RX", "Reactor"],
+  ["LINE", "Piping line / spool"],
+  ["TRAY", "Cable tray run"],
+  ["CBL", "Cable / cable route"],
+  ["INST", "Instrument"],
+  ["STR", "Structural steel / platform"]
+];
+
+/* ---------------------------------------------------------------------- */
+
+const el = id => document.getElementById(id);
+
+function fillSelect(select, list){
+  list.forEach(([val, label]) => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = val ? `${val} — ${label}` : label;
+    select.appendChild(opt);
+  });
+}
+fillSelect(el("area"), AREAS);
+fillSelect(el("discipline"), DISCIPLINES);
+fillSelect(el("itemCategory"), ITEM_CATEGORIES);
+
+// default date to today
+el("revDate").valueAsDate = new Date();
+
+let sessionEntries = [];   // {code, date, rev, area, discipline, type, section, notes}
+let loadedExisting = new Set(); // codes from uploaded CSV
+
+function sanitize(str){
+  return (str || "").trim().toUpperCase().replace(/\s+/g, "_");
+}
+
+function buildCode(){
+  const project = sanitize(el("project").value);
+  const area = el("area").value;
+  const discipline = el("discipline").value;
+  const section = sanitize(el("section").value);
+  const sequence = sanitize(el("sequence").value);
+  const subindex = sanitize(el("subindex").value);
+  const type = el("type").value;
+
+  if(!project || !area || !discipline || !section || !sequence || !type) return null;
+
+  let parts = [project, area, discipline, section, sequence];
+  if(subindex) parts.push(subindex);
+  parts.push(type);
+  return parts.join("-");
+}
+
+function allCodesTaken(){
+  const fromSession = new Set(sessionEntries.map(e => e.code));
+  return new Set([...fromSession, ...loadedExisting]);
+}
+
+function showToast(msg){
+  const t = el("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1400);
+}
+
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => showToast("Copied to clipboard"))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); showToast("Copied to clipboard"); }
+  catch(e) { showToast("Copy failed — select manually"); }
+  document.body.removeChild(ta);
+}
+
+function currentRowTSV(){
+  const code = buildCode();
+  if(!code) return null;
+  const date = el("revDate").value || "";
+  const rev = sanitize(el("rev").value);
+  const area = el("area").value;
+  const discipline = el("discipline").value;
+  const type = el("type").value;
+  const section = sanitize(el("section").value);
+  const notes = (el("notes").value || "").replace(/\t/g, " ").replace(/\n/g, " ");
+  // Tab-separated so it pastes straight into spreadsheet columns
+  return [code, date, rev, area, discipline, type, section, notes].join("\t");
+}
+
+function refreshGenerated(){
+  const code = buildCode();
+  const codeEl = el("generatedCode");
+  const statusEl = el("dupStatus");
+  const addBtn = el("addBtn");
+  const copyBtn = el("copyRowBtn");
+
+  if(!code){
+    codeEl.textContent = "—";
+    statusEl.textContent = "Fill in Project, Area, Discipline, Section, Sequence and Type";
+    statusEl.className = "status wait";
+    addBtn.disabled = true;
+    copyBtn.disabled = true;
+    return;
+  }
+
+  codeEl.textContent = code;
+  const taken = allCodesTaken();
+  if(taken.has(code)){
+    statusEl.textContent = "Duplicate — this number already exists";
+    statusEl.className = "status bad";
+    addBtn.disabled = true;
+    copyBtn.disabled = true;
+  } else {
+    statusEl.textContent = "Available";
+    statusEl.className = "status ok";
+    addBtn.disabled = false;
+    copyBtn.disabled = false;
+  }
+}
+
+["project","area","discipline","section","sequence","subindex","type","revDate","rev","notes"].forEach(id => {
+  el(id).addEventListener("input", refreshGenerated);
+  el(id).addEventListener("change", refreshGenerated);
+});
+
+function renderRegister(){
+  const body = el("registerBody");
+  body.innerHTML = "";
+  if(sessionEntries.length === 0){
+    body.innerHTML = '<tr class="empty-row"><td colspan="10">Nothing added yet.</td></tr>';
+  } else {
+    sessionEntries.slice().reverse().forEach((entry) => {
+      const realIndex = sessionEntries.indexOf(entry);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="code">${entry.code}</td>
+        <td>${entry.date}</td>
+        <td>${entry.rev}</td>
+        <td>${entry.area}</td>
+        <td>${entry.discipline}</td>
+        <td>${entry.type}</td>
+        <td>${entry.section}</td>
+        <td class="notes-cell">${entry.notes}</td>
+        <td><button class="copy-btn" data-idx="${realIndex}" title="Copy row">⧉</button></td>
+        <td><button class="del-btn" data-idx="${realIndex}" title="Remove">✕</button></td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+  el("entryCount").textContent = `${sessionEntries.length} in session`;
+
+  body.querySelectorAll(".del-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.getAttribute("data-idx"), 10);
+      sessionEntries.splice(idx, 1);
+      renderRegister();
+      refreshGenerated();
+    });
+  });
+
+  body.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.getAttribute("data-idx"), 10);
+      const e = sessionEntries[idx];
+      const tsv = [e.code, e.date, e.rev, e.area, e.discipline, e.type, e.section, e.notes].join("\t");
+      copyText(tsv);
+    });
+  });
+}
+
+el("addBtn").addEventListener("click", () => {
+  const code = buildCode();
+  if(!code || allCodesTaken().has(code)) return;
+  sessionEntries.push({
+    code,
+    date: el("revDate").value || "",
+    rev: sanitize(el("rev").value),
+    area: el("area").value,
+    discipline: el("discipline").value,
+    type: el("type").value,
+    section: sanitize(el("section").value),
+    notes: (el("notes").value || "").trim()
+  });
+  renderRegister();
+  el("sequence").value = "";
+  el("subindex").value = "";
+  el("notes").value = "";
+  refreshGenerated();
+});
+
+el("copyRowBtn").addEventListener("click", () => {
+  const tsv = currentRowTSV();
+  if(tsv) copyText(tsv);
+});
+
+el("clearBtn").addEventListener("click", () => {
+  ["section","sequence","subindex","notes"].forEach(id => el(id).value = "");
+  el("area").value = "";
+  el("discipline").value = "";
+  el("itemCategory").value = "";
+  el("rev").value = "";
+  el("revDate").valueAsDate = new Date();
+  refreshGenerated();
+});
+
+el("resetBtn").addEventListener("click", () => {
+  if(sessionEntries.length && !confirm("Clear all numbers added this session? This cannot be undone.")) return;
+  sessionEntries = [];
+  renderRegister();
+  refreshGenerated();
+});
+
+el("exportBtn").addEventListener("click", () => {
+  if(sessionEntries.length === 0){ alert("Nothing to export yet."); return; }
+  const header = "Number,Date,Rev,Area,Discipline,Type,Section,Notes\n";
+  const rows = sessionEntries.map(e =>
+    [e.code, e.date, e.rev, e.area, e.discipline, e.type, e.section, `"${(e.notes||"").replace(/"/g,'""')}"`].join(",")
+  ).join("\n");
+  const blob = new Blob([header + rows], {type: "text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `dasa-numbers-session-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+el("csvFile").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const text = ev.target.result;
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if(lines.length === 0) return;
+
+    let startIdx = 0;
+    let colIdx = 0;
+    const headerCells = lines[0].split(",").map(c => c.trim().toLowerCase());
+    const headerMatch = headerCells.findIndex(c => c.includes("drawing") || c.includes("number") || c === "code");
+    if(headerMatch !== -1){
+      startIdx = 1;
+      colIdx = headerMatch;
+    }
+
+    loadedExisting = new Set();
+    for(let i = startIdx; i < lines.length; i++){
+      const cells = lines[i].split(",");
+      const val = (cells[colIdx] || "").trim().toUpperCase();
+      if(val) loadedExisting.add(val);
+    }
+    el("loadedCount").textContent = `${loadedExisting.size} loaded`;
+    refreshGenerated();
+  };
+  reader.readAsText(file);
+});
+
+refreshGenerated();
+renderRegister();
+</script>
+</body>
+</html>
