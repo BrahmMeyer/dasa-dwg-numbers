@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -529,6 +530,35 @@ function currentRowTSV(){
   return [code, date, rev, area, discipline, type, section, notes].join("\t");
 }
 
+function tryAutoResolve(originalCode, taken){
+  const seqVal = sanitize(el("sequence").value);
+  if(!/^\d+$/.test(seqVal)) return null; // not a plain running number — can't safely auto-increment a real tag
+
+  const width = seqVal.length;
+  let num = parseInt(seqVal, 10);
+  const maxTries = 9999;
+
+  const project = sanitize(el("project").value);
+  const area = el("area").value;
+  const discipline = el("discipline").value;
+  const section = sanitize(el("section").value);
+  const subindex = sanitize(el("subindex").value);
+  const type = el("type").value;
+
+  for(let i = 0; i < maxTries; i++){
+    num += 1;
+    const candidateSeq = String(num).padStart(width, "0");
+    let parts = [project, area, discipline, section, candidateSeq];
+    if(subindex) parts.push(subindex);
+    parts.push(type);
+    const candidateCode = parts.join("-");
+    if(!taken.has(candidateCode)){
+      return { code: candidateCode, seq: candidateSeq };
+    }
+  }
+  return null;
+}
+
 function refreshGenerated(){
   const code = buildCode();
   const codeEl = el("generatedCode");
@@ -545,19 +575,32 @@ function refreshGenerated(){
     return;
   }
 
-  codeEl.textContent = code;
   const taken = allCodesTaken();
+
   if(taken.has(code)){
-    statusEl.textContent = "Duplicate — this number already exists";
+    const resolved = tryAutoResolve(code, taken);
+    if(resolved){
+      el("sequence").value = resolved.seq;
+      codeEl.textContent = resolved.code;
+      statusEl.textContent = `Sequence was taken — auto-adjusted to next available number (${resolved.seq})`;
+      statusEl.className = "status ok";
+      addBtn.disabled = false;
+      copyBtn.disabled = false;
+      return;
+    }
+    codeEl.textContent = code;
+    statusEl.textContent = "Duplicate — this number already exists (not a running number, so it can't be auto-incremented — check the tag)";
     statusEl.className = "status bad";
     addBtn.disabled = true;
     copyBtn.disabled = true;
-  } else {
-    statusEl.textContent = "Available";
-    statusEl.className = "status ok";
-    addBtn.disabled = false;
-    copyBtn.disabled = false;
+    return;
   }
+
+  codeEl.textContent = code;
+  statusEl.textContent = "Available";
+  statusEl.className = "status ok";
+  addBtn.disabled = false;
+  copyBtn.disabled = false;
 }
 
 function suggestNextNumber(){
