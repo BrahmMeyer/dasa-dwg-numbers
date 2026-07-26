@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -303,9 +302,12 @@
       <label for="itemCategory">Item Category <span style="opacity:.6;">(fills the tag prefix hint only)</span></label>
       <select id="itemCategory"></select>
 
-      <label for="sequence">Sequence — Equipment / Valve / Line / Tray No.</label>
+      <label for="sequence">Sequence — Equipment / Valve / Line / Tray No./Structural Name</label>
       <input type="text" id="sequence" placeholder="e.g. P-2104, 150-PW-1024-A1A, TRAY-07">
-      <div class="hint">Always the plant's own tag. Never an invented running number.</div>
+      <div class="hint">Mechanical/Piping/Electrical/Instrumentation: always the plant's own tag. Structural/Civil/Architectural: no external tag exists — use a running number, click "Suggest Next Number" to auto-fill the next unused one for this Area+Discipline+Section.</div>
+      <div class="actions" style="margin-top:8px;">
+        <button type="button" id="suggestBtn" class="small">Suggest Next Number</button>
+      </div>
 
       <label for="subindex">Sub-index <span style="opacity:.6;">(only if one tag has more than one GA/DT)</span></label>
       <input type="text" id="subindex" placeholder="e.g. 01">
@@ -384,21 +386,21 @@
 
 const AREAS = [
   ["", "Select area..."],
-  ["ROM", "ROM Pad / Primary Crushing"],
-  ["STK", "Stockpile & Reclaim"],
-  ["MIL", "Milling / Grinding"],
-  ["LEA", "Leaching"],
-  ["CCD", "CCD / Thickening"],
-  ["SXR", "Solvent Extraction"],
-  ["IEX", "Ion Exchange"],
-  ["PPT", "Precipitation & Calcining"],
-  ["TSF", "Tailings Storage"],
-  ["RGT", "Reagents"],
-  ["WTP", "Water Treatment"],
-  ["PKG", "Product Handling / Drumming"],
-  ["ELS", "Electrical Substation / MCC"],
-  ["SVC", "Site Services / HVAC"],
-  ["CIV", "Civil / General"]
+  ["100", "ROM Pad / Primary Crushing"],
+  ["150", "Stockpile & Reclaim"],
+  ["200", "Milling / SAG Mill"],
+  ["250", "Leaching"],
+  ["300", "CCD / Thickening"],
+  ["350", "Solvent Extraction"],
+  ["400", "Ion Exchange"],
+  ["450", "Precipitation & Calcining"],
+  ["500", "Tailings Storage"],
+  ["550", "Reagents"],
+  ["600", "Water Treatment"],
+  ["650", "Product Handling / Drumming"],
+  ["700", "Electrical Substation / MCC"],
+  ["750", "Site Services / HVAC"],
+  ["800", "Civil / General"]
 ];
 
 const DISCIPLINES = [
@@ -557,6 +559,43 @@ function refreshGenerated(){
     copyBtn.disabled = false;
   }
 }
+
+function suggestNextNumber(){
+  const project = sanitize(el("project").value);
+  const area = el("area").value;
+  const discipline = el("discipline").value;
+  const section = sanitize(el("section").value);
+
+  if(!project || !area || !discipline || !section){
+    alert("Fill in Project, Area, Discipline and Section first — the running number is scoped to that combination.");
+    return;
+  }
+
+  const prefix = `${project}-${area}-${discipline}-${section}-`;
+  const taken = allCodesTaken();
+  let maxNum = 0;
+  let padWidth = 3;
+
+  taken.forEach(code => {
+    if(code.startsWith(prefix)){
+      const rest = code.slice(prefix.length);
+      const firstToken = rest.split("-")[0];
+      if(/^\d+$/.test(firstToken)){
+        const num = parseInt(firstToken, 10);
+        if(num > maxNum){
+          maxNum = num;
+          padWidth = firstToken.length;
+        }
+      }
+    }
+  });
+
+  const next = String(maxNum + 1).padStart(padWidth, "0");
+  el("sequence").value = next;
+  refreshGenerated();
+}
+
+el("suggestBtn").addEventListener("click", suggestNextNumber);
 
 ["project","area","discipline","section","sequence","subindex","type","revDate","rev","notes"].forEach(id => {
   el(id).addEventListener("input", refreshGenerated);
